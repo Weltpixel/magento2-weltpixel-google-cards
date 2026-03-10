@@ -1,0 +1,103 @@
+<?php
+$_product = $this->getProduct();
+$_brand = $this->getBrand($_product) ?? '';
+$_sku = $this->getSku($_product) ?? '';
+$_mpn = $this->getMpn($_product) ?? '';
+$_gtin = $this->getGtin($_product) ?? '';
+$_itemCondition = $this->getItemCondition($_product);
+
+$reviewsFormat = $this->getReviewsFormat();
+
+$summaryModel = $block->getReviewSummary();
+$reviewCount = $summaryModel->getReviewsCount();
+if (!$reviewCount) {
+    $reviewCount = 0;
+}
+$ratingSummary = ($summaryModel->getRatingSummary()) ? $summaryModel->getRatingSummary() : 20;
+$wpCanonicalUrlEnabled = (bool)$_product->getData('wp_enable_canonical_url');
+$wpCanonicalUrl = $_product->getData('wp_canonical_url') ?? '';
+$productUrl = $_product->getUrlInStore();
+if ($wpCanonicalUrlEnabled) {
+    $productUrl = $wpCanonicalUrl;
+    $urlOptions = parse_url($wpCanonicalUrl);
+    if (!isset($urlOptions['scheme'])) {
+        $productUrl = $block->getBaseUrl() . $wpCanonicalUrl;
+    }
+}
+?>
+
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": "<?php /* @noEscape */
+    echo $block->escapeQuote($block->stripTags($_product->getName())); ?>",
+        "image": "<?php /* @noEscape */
+    echo $block->stripTags($block->getImage($_product, 'weltpixel_googlecards_product_image')->getImageUrl()); ?>",
+        "description": "<?php /* @noEscape */
+    echo $block->escapeQuote($block->stripTags($block->getDescription($_product))); ?>",
+<?php if (strlen(trim($_brand))): ?>
+        "brand": {
+            "@type": "Brand",
+            "name": "<?php /* @noEscape */ echo $block->stripTags($_brand); ?>"
+        },
+<?php endif; ?>
+
+<?php if (strlen(trim($_sku))): ?>
+        "sku": "<?php /* @noEscape */ echo $block->stripTags($_sku); ?>",
+<?php endif; ?>
+<?php if (strlen(trim($_mpn))): ?>
+        "mpn": "<?php /* @noEscape */ echo $block->stripTags($_mpn); ?>",
+<?php endif; ?>
+<?php if (strlen(trim($_gtin))): ?>
+        "gtin13": "<?php /* @noEscape */ echo $block->stripTags($_gtin); ?>",
+<?php endif; ?>
+<?php if ($reviewCount) : ?>
+        <?php if ($reviewsFormat != 0) : ?>
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "bestRating": 5,
+            "worstRating": 1,
+            "ratingValue": "<?php /* @noEscape */ echo $ratingSummary / 20; ?>",
+            "reviewCount": "<?php /* @noEscape */ echo $reviewCount ?>"
+        },
+        <?php endif ;?>
+        <?php if($reviewsFormat == 2) : $reviews = $block->getReviews(); ?>
+            <?php if ($reviews):  $countReviews = count($reviews);?>
+                "review": [
+                    <?php $ctr = 1; foreach ($reviews as $key => $reviewItem) : ?>
+                         {
+                            "@type": "Review",
+                            "reviewRating": {
+                              "@type": "Rating",
+                              "ratingValue": "<?php /* @noEscape */ echo $reviewItem->getRating() ?>"
+                            },
+                            "name": "<?php /* @noEscape */ echo $block->escapeQuote($block->stripTags($reviewItem->getTitle())) ?>",
+                            "author": {
+                              "@type": "Person",
+                              "name": "<?php /* @noEscape */ echo $block->escapeQuote($block->stripTags($reviewItem->getNickname())) ?>"
+                            },
+                            "datePublished": "<?php /* @noEscape */ echo $this->formatedDate($reviewItem->getCreatedAt()) ?>",
+                            "reviewBody": "<?php /* @noEscape */ echo $block->escapeQuote($block->stripTags($reviewItem->getDetail())) ?>"
+                        }<?php echo ($countReviews > $ctr) ? ',' : '';?>
+                    <?php $ctr++; endforeach; ?>
+                    ],
+            <?php endif; ?>
+        <?php endif; ?>
+    <?php endif; ?>
+        "offers": {
+            "@type": "Offer",
+            "priceCurrency": "<?php /* @noEscape */ echo $block->getCurrencyCode() ?>",
+            "url": "<?php /* @noEscape */ echo $block->stripTags($productUrl); ?>",
+            "availability": "<?php /* @noEscape */ echo $block->getProductAvailability($_product); ?>",
+            "price": "<?php /* @noEscape */ echo $this->getPrice(); ?>"
+<?php if ($_product->getSpecialPrice()): ?>
+            ,"priceValidUntil": "<?php /* @noEscape */ echo $this->formatedDate($_product->getSpecialToDate()); ?>"
+<?php endif; ?>
+<?php if($_itemCondition) :?>
+            ,"itemCondition": "https://schema.org/<?php /* @noEscape */ echo $_itemCondition;?>"
+<?php endif; ?>
+        }
+    }
+
+</script>

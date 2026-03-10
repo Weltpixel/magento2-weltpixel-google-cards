@@ -1,0 +1,16 @@
+<?php
+$_product = $block->getProduct();
+?>
+<!--  twitter product cards-->
+<meta name="twitter:card" content="<?= /* @noEscape  */ $block->getTwitterCardType() ?>" />
+<meta name="twitter:domain" content="<?= /* @noEscape  */ $block->getBaseUrl() ?>" />
+<meta name="twitter:site" content="<?= /* @noEscape  */ (strlen(trim($block->getTwitterSite()))) ? '@' . $block->getTwitterSite() : '' ?>" />
+<meta name="twitter:creator" content="<?= /* @noEscape  */  (strlen(trim($block->getTwitterCreator()))) ? '@' . $block->getTwitterCreator() : '' ?>" />
+<meta name="twitter:title" content="<?= /* @noEscape  */  $block->stripTags($_product->getName()) ?>" />
+<meta name="twitter:description" content="<?= /* @noEscape  */  $block->stripTags($block->getDescription($_product)) ?>" />
+<meta name="twitter:image" content="<?= /* @noEscape  */  $block->getImage($_product, 'weltpixel_googlecards_product_image')->getImageUrl() ?>" />
+<meta name="twitter:data1" content="<?= /* @noEscape  */  $block->getCurrencyCode() . $this->getPrice() ?>" />
+<meta name="twitter:label1" content="PRICE" />
+<meta name="twitter:data2" content="<?= /* @noEscape  */  $block->getShippingCountry() ?>" />
+<meta name="twitter:label2" content="LOCATION" />
+<!--  twitter product cards-->

@@ -1,0 +1,15 @@
+<?php if ($this->isSearchEnabled()) : ?>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "url": "<?= /* @noEscape */ $block->getBaseUrl() ?>",
+      "name": "<?= /* @noEscape */ $block->escapeQuote($block->getStoreName()) ?>",
+      "potentialAction": [{
+        "@type": "SearchAction",
+        "target": "<?= /* @noEscape */ $block->getUrl('catalogsearch/result/') ?>?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }]
+    }
+    </script>
+<?php endif; ?>

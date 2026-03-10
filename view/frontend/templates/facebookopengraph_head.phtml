@@ -1,0 +1,37 @@
+<?php
+$_product = $this->getProduct();
+$stock = $block->getProductAvailability($_product, true);
+
+$fbAppId = trim($block->getAppId());
+
+$wpCanonicalUrlEnabled = (bool)$_product->getData('wp_enable_canonical_url');
+$wpCanonicalUrl = $_product->getData('wp_canonical_url') ?? '';
+$productUrl = $_product->getUrlInStore();
+if ($wpCanonicalUrlEnabled) {
+    $productUrl = $wpCanonicalUrl;
+    $urlOptions = parse_url($wpCanonicalUrl);
+    if (!isset($urlOptions['scheme'])) {
+        $productUrl = $block->getBaseUrl() . $wpCanonicalUrl;
+    }
+}
+?>
+<!--  facebook open graph -->
+<?php if ($fbAppId) : ?>
+    <meta property="fb:app_id" content="<?php /* @noEscape */ echo $fbAppId; ?>"/>
+<?php endif; ?>
+<meta property="og:site_name" content="<?php /* @noEscape */
+echo $block->getSiteName(); ?>"/>
+<meta property="og:type" content="product"/>
+<meta property="og:title" content="<?php /* @noEscape */
+echo $block->stripTags($_product->getName()); ?>"/>
+<meta property="og:image" content="<?php /* @noEscape */
+echo $block->stripTags($block->getImage($_product, 'weltpixel_googlecards_product_image')->getImageUrl()); ?>"/>
+<meta property="og:description" content="<?php /* @noEscape */
+echo $block->escapeQuote($block->stripTags($block->getDescription($_product))); ?>"/>
+<meta property="og:url" content="<?php /* @noEscape */
+echo $block->stripTags($productUrl); ?>"/>
+<meta property="product:price:amount" content="<?php /* @noEscape */ echo $this->getPrice(); ?>"/>
+<meta property="product:price:currency" content="<?php /* @noEscape */ echo $block->getCurrencyCode() ?>"/>
+<meta property="product:availability" content="<?php /* @noEscape */ echo $stock; ?>"/>
+<meta property="product:retailer_item_id" content="<?php /* @noEscape */ echo $block->getRetailerId($_product); ?>"/>
+<!--  facebook open graph -->

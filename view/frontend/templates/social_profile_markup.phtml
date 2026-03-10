@@ -1,0 +1,37 @@
+<?php
+$facebookUrl = $block->stripTags(trim($this->getFacebookUrl()));
+$twitterUrl = $block->stripTags(trim($this->getTwitterUrl()));
+$instagramUrl = $block->stripTags(trim($this->getInstagramUrl()));
+$youtubeUrl = $block->stripTags(trim($this->getYoutubeUrl()));
+$linkedinUrl = $block->stripTags(trim($this->getLinkedinUrl()));
+$myspaceUrl = $block->stripTags(trim($this->getMyspaceUrl()));
+$pinterestUrl = $block->stripTags(trim($this->getPinterestUrl()));
+$soundcloudUrl = $block->stripTags(trim($this->getSoundcloudUrl()));
+$thumblrUrl = $block->stripTags(trim($this->getThumblrUrl()));
+
+$socialLoginUrls = [
+    $facebookUrl,
+    $twitterUrl,
+    $instagramUrl,
+    $youtubeUrl,
+    $linkedinUrl,
+    $myspaceUrl,
+    $pinterestUrl,
+    $soundcloudUrl,
+    $thumblrUrl
+];
+
+?>
+
+<script type="application/ld+json">
+{ "@context" : "https://schema.org",
+  "@type" : "Organization",
+  "name" : "<?= /* @noEscape  */ $this->getStoreName(); ?>",
+  "url" : "<?= $block->escapeUrl($block->getBaseUrl()); ?>",
+  "sameAs" : [
+     <?= /* @noEscape */ '"' . implode('", "', array_filter($socialLoginUrls)) . '"'; ?>
+    ]
+}
+
+</script>
+

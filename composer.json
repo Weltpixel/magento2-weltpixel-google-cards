@@ -1,0 +1,21 @@
+{
+  "name": "weltpixel/magento2-weltpixel-google-cards",
+  "description": "WeltPixel GoogleCards Module",
+  "require": {
+    "magento/module-catalog": "*"
+  },
+    "replace": {
+        "weltpixel/magento2-weltpixel-google-cards-lite": "self.version"
+    },
+  "type": "magento2-module",
+  "version": "1.16.1",
+  "license": "MIT",
+  "autoload": {
+    "files": [
+      "registration.php"
+    ],
+    "psr-4": {
+      "WeltPixel\\GoogleCards\\": ""
+    }
+  }
+}
