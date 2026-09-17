@@ -1,12 +1,21 @@
-<?php $logoUrl = $this->getLogoUrl() ?>
+<?php
+/**
+ * Emitted through json_encode rather than assembled by hand, so neither the base url nor the
+ * configured logo path can break the json string or close the script element.
+ */
+$logoUrl = $this->getLogoUrl();
+$jsonFlags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+    | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT;
+
+$logoData = [
+    '@context' => 'https://schema.org',
+    '@type' => 'Organization',
+    'url' => $block->getBaseUrl(),
+    'logo' => $block->stripTags((string)$logoUrl),
+];
+?>
 <?php if ($logoUrl) : ?>
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "url": "<?= /* @noEscape */ $block->getBaseUrl() ?>",
-      "logo": "<?= /* @noEscape */ $logoUrl ?>"
-    }
-
+<?= /* @noEscape */ json_encode($logoData, $jsonFlags) ?>
     </script>
 <?php endif; ?>

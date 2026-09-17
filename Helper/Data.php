@@ -273,9 +273,13 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function isGoogleCardsConfigurableSimpleSeparately($storeId = 0)
     {
         if ($storeId) {
-            return (bool)$this->scopeConfig->getValue('weltpixel_google_cards/general/configurable_products_include_simple', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId) ?? '';
+            return (bool)$this->scopeConfig->getValue('weltpixel_google_cards/general/configurable_products_include_simple', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
         } else {
-            return (bool)$this->_cardsOptions['general']['configurable_products_include_simple'] ?? '';
+            /**
+             * The cast bound tighter than the coalesce, so ?? only ever saw a boolean and the
+             * array read itself was unguarded. The coalesce now wraps the read.
+             */
+            return (bool)($this->_cardsOptions['general']['configurable_products_include_simple'] ?? false);
         }
     }
 

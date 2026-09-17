@@ -1,4 +1,16 @@
 <?php
+/**
+ * The json-ld document is assembled as a php array and emitted with json_encode.
+ *
+ * As in meta_head.phtml, this was written by hand with escapeQuote(stripTags()) per value, which
+ * escapes neither control characters nor backslashes, so a description containing a newline made
+ * the whole document unparseable and the rich result was discarded.
+ *
+ * This template also carried the one value in the module with no escaping at all: the child offer
+ * sku was echoed raw, so - unlike every sibling value - an injected </script> was not stripped and
+ * could close the surrounding script element. JSON_HEX_TAG now makes the < and > of a </script>
+ * unrepresentable, and the sku goes through stripTags like its siblings.
+ */
 $_product = $this->getProduct();
 $_brand = $this->getBrand($_product) ?? '';
 $_sku = $this->getSku($_product) ?? '';
@@ -15,78 +27,81 @@ if (!$reviewCount) {
     $reviewCount = 0;
 }
 $ratingSummary = ($summaryModel->getRatingSummary()) ? $summaryModel->getRatingSummary() : 20;
+
+$jsonFlags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+    | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT;
+
+$googleCardsData = [
+    '@context' => 'https://schema.org/',
+    '@type' => 'Product',
+    'name' => $block->stripTags($_product->getName()),
+    'image' => $block->stripTags(
+        $block->getImage($_product, 'weltpixel_googlecards_product_image')->getImageUrl()
+    ),
+    'description' => $block->stripTags($block->getDescription($_product)),
+];
+
+if (strlen(trim($_brand))) {
+    $googleCardsData['brand'] = [
+        '@type' => 'Brand',
+        'name' => $block->stripTags($_brand),
+    ];
+}
+if (strlen(trim($_mpn))) {
+    $googleCardsData['mpn'] = $block->stripTags($_mpn);
+}
+if (strlen(trim($_gtin))) {
+    $googleCardsData['gtin13'] = $block->stripTags($_gtin);
+}
+
+if ($reviewCount) {
+    if ($reviewsFormat != 0) {
+        $googleCardsData['aggregateRating'] = [
+            '@type' => 'AggregateRating',
+            'bestRating' => 5,
+            'worstRating' => 1,
+            'ratingValue' => (string)($ratingSummary / 20),
+            'reviewCount' => (string)$reviewCount,
+        ];
+    }
+    if ($reviewsFormat == 2) {
+        $reviews = $block->getReviews();
+        if ($reviews) {
+            $reviewItems = [];
+            foreach ($reviews as $reviewItem) {
+                $reviewItems[] = [
+                    '@type' => 'Review',
+                    'reviewRating' => [
+                        '@type' => 'Rating',
+                        'ratingValue' => (string)$reviewItem->getRating(),
+                    ],
+                    'name' => $block->stripTags($reviewItem->getTitle()),
+                    'author' => [
+                        '@type' => 'Person',
+                        'name' => $block->stripTags($reviewItem->getNickname()),
+                    ],
+                    'datePublished' => $this->formatedDate($reviewItem->getCreatedAt()),
+                    'reviewBody' => $block->stripTags($reviewItem->getDetail()),
+                ];
+            }
+            $googleCardsData['review'] = $reviewItems;
+        }
+    }
+}
+
+$googleCardsOffers = [];
+foreach ($childProducts as $childProduct) {
+    $googleCardsOffers[] = [
+        '@type' => 'Offer',
+        'sku' => $block->stripTags($childProduct->getSku()),
+        'priceCurrency' => $block->getCurrencyCode(),
+        'price' => (string)$this->getPriceForSimpleProduct($childProduct),
+        'availability' => $block->getProductAvailability($childProduct),
+    ];
+}
+$googleCardsData['offers'] = $googleCardsOffers;
 ?>
 
 <script type="application/ld+json">
-    {
-        "@context": "https://schema.org/",
-        "@type": "Product",
-        "name": "<?php /* @noEscape */
-    echo $block->escapeQuote($block->stripTags($_product->getName())); ?>",
-        "image": "<?php /* @noEscape */
-    echo $block->stripTags($block->getImage($_product, 'weltpixel_googlecards_product_image')->getImageUrl()); ?>",
-        "description": "<?php /* @noEscape */
-    echo $block->escapeQuote($block->stripTags($block->getDescription($_product))); ?>",
-<?php if (strlen(trim($_brand))): ?>
-        "brand": {
-            "@type": "Brand",
-            "name": "<?php /* @noEscape */ echo $block->stripTags($_brand); ?>"
-        },
-<?php endif; ?>
-<?php if (strlen(trim($_mpn))): ?>
-        "mpn": "<?php /* @noEscape */ echo $block->stripTags($_mpn); ?>",
-<?php endif; ?>
-<?php if (strlen(trim($_gtin))): ?>
-        "gtin13": "<?php /* @noEscape */ echo $block->stripTags($_gtin); ?>",
-<?php endif; ?>
-<?php if ($reviewCount) : ?>
-        <?php if ($reviewsFormat != 0) : ?>
-        "aggregateRating": {
-            "@type": "AggregateRating",
-            "bestRating": 5,
-            "worstRating": 1,
-            "ratingValue": "<?php /* @noEscape */ echo $ratingSummary / 20; ?>",
-            "reviewCount": "<?php /* @noEscape */ echo $reviewCount ?>"
-        },
-        <?php endif ;?>
-        <?php if($reviewsFormat == 2) : $reviews = $block->getReviews(); ?>
-            <?php if ($reviews):  $countReviews = count($reviews);?>
-                "review": [
-                    <?php $ctr = 1; foreach ($reviews as $key => $reviewItem) : ?>
-                         {
-                            "@type": "Review",
-                            "reviewRating": {
-                              "@type": "Rating",
-                              "ratingValue": "<?php /* @noEscape */ echo $reviewItem->getRating() ?>"
-                            },
-                            "name": "<?php /* @noEscape */ echo $block->escapeQuote($block->stripTags($reviewItem->getTitle())) ?>",
-                            "author": {
-                              "@type": "Person",
-                              "name": "<?php /* @noEscape */ echo $block->escapeQuote($block->stripTags($reviewItem->getNickname())) ?>"
-                            },
-                            "datePublished": "<?php /* @noEscape */ echo $this->formatedDate($reviewItem->getCreatedAt()) ?>",
-                            "reviewBody": "<?php /* @noEscape */ echo $block->escapeQuote($block->stripTags($reviewItem->getDetail())) ?>"
-                        }<?php echo ($countReviews > $ctr) ? ',' : '';?>
-                    <?php $ctr++; endforeach; ?>
-                    ],
-            <?php endif; ?>
-        <?php endif; ?>
-    <?php endif; ?>
-        "offers": [
-        <?php $isFirst = true; foreach ($childProducts as $childProduct) : ?>
-        <?php if (!$isFirst) : echo "," ; endif;  ?>
-    {
-            "@type": "Offer",
-            "sku": "<?php /* @noEscape */ echo $childProduct->getSku() ?>",
-            "priceCurrency": "<?php  /* @noEscape */ echo $block->getCurrencyCode() ?>",
-            "price": "<?php  /* @noEscape */ echo $this->getPriceForSimpleProduct($childProduct); ?>",
-            "availability": "<?php  /* @noEscape */ echo $block->getProductAvailability($childProduct); ?>"
-        }
-        <?php
-        $isFirst = false;
-        endforeach;
-        ?>
-        ]
-    }
-
+<?= /* @noEscape */ json_encode($googleCardsData, $jsonFlags) ?>
 </script>

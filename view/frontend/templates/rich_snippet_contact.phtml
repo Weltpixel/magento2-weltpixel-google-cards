@@ -1,4 +1,9 @@
 <?php
+/**
+ * Emitted through json_encode rather than assembled by hand. The contactPoint was already built
+ * as an array and encoded correctly; the surrounding document was not, so the base url and the
+ * configured logo path were interpolated raw.
+ */
 $logoUrl = $this->getLogoUrl();
 $phone = $this->getPhone();
 $contactType = $this->getContactType();
@@ -7,34 +12,34 @@ $contactOption = $this->getContactOption();
 $contactLanguage = $this->getContactLanguage();
 
 $contactPoint = [
-    "@type"     => "ContactPoint",
-    "telephone" => $block->stripTags($phone),
-    "contactType"=> $contactType
+    '@type' => 'ContactPoint',
+    'telephone' => $block->stripTags($phone),
+    'contactType' => $contactType,
 ];
-if ($contactArea) :
+if ($contactArea) {
     $contactPoint['areaServed'] = $block->stripTags($contactArea);
-endif;
-if ($contactOption) :
+}
+if ($contactOption) {
     $contactPoint['contactOption'] = $block->stripTags($contactOption);
-endif;
-if ($contactLanguage) :
+}
+if ($contactLanguage) {
     $contactPoint['availableLanguage'] = $block->stripTags($contactLanguage);
-endif;
+}
 
+$jsonFlags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+    | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT;
 
+$contactData = [
+    '@context' => 'https://schema.org',
+    '@type' => 'Organization',
+    'url' => $block->getBaseUrl(),
+    'logo' => $block->stripTags((string)$logoUrl),
+    'contactPoint' => [$contactPoint],
+];
 ?>
 
 <?php if ($phone && $contactType) : ?>
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "url": "<?= /* @noEscape */
-        $block->getBaseUrl() ?>",
-      "logo": "<?= /* @noEscape */
-        $logoUrl; ?>",
-      "contactPoint": [<?php /* @noEscape */ echo json_encode($contactPoint, JSON_FORCE_OBJECT)?>]
-    }
-
+<?= /* @noEscape */ json_encode($contactData, $jsonFlags) ?>
     </script>
 <?php endif; ?>

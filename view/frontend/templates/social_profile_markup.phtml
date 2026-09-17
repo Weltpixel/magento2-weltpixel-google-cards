@@ -1,37 +1,35 @@
 <?php
-$facebookUrl = $block->stripTags(trim($this->getFacebookUrl()));
-$twitterUrl = $block->stripTags(trim($this->getTwitterUrl()));
-$instagramUrl = $block->stripTags(trim($this->getInstagramUrl()));
-$youtubeUrl = $block->stripTags(trim($this->getYoutubeUrl()));
-$linkedinUrl = $block->stripTags(trim($this->getLinkedinUrl()));
-$myspaceUrl = $block->stripTags(trim($this->getMyspaceUrl()));
-$pinterestUrl = $block->stripTags(trim($this->getPinterestUrl()));
-$soundcloudUrl = $block->stripTags(trim($this->getSoundcloudUrl()));
-$thumblrUrl = $block->stripTags(trim($this->getThumblrUrl()));
+/**
+ * Emitted through json_encode rather than assembled by hand.
+ *
+ * The store name was printed with no filtering at all and the social urls were joined into the
+ * sameAs array with '", "', so a quote in any of them broke the document. json_encode escapes
+ * them, and JSON_HEX_TAG means neither can close the surrounding script element.
+ */
+$socialProfileUrls = array_values(array_filter([
+    $block->stripTags(trim($this->getFacebookUrl())),
+    $block->stripTags(trim($this->getTwitterUrl())),
+    $block->stripTags(trim($this->getInstagramUrl())),
+    $block->stripTags(trim($this->getYoutubeUrl())),
+    $block->stripTags(trim($this->getLinkedinUrl())),
+    $block->stripTags(trim($this->getMyspaceUrl())),
+    $block->stripTags(trim($this->getPinterestUrl())),
+    $block->stripTags(trim($this->getSoundcloudUrl())),
+    $block->stripTags(trim($this->getThumblrUrl())),
+]));
 
-$socialLoginUrls = [
-    $facebookUrl,
-    $twitterUrl,
-    $instagramUrl,
-    $youtubeUrl,
-    $linkedinUrl,
-    $myspaceUrl,
-    $pinterestUrl,
-    $soundcloudUrl,
-    $thumblrUrl
+$jsonFlags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+    | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT;
+
+$socialProfileData = [
+    '@context' => 'https://schema.org',
+    '@type' => 'Organization',
+    'name' => $block->stripTags($this->getStoreName()),
+    'url' => $block->getBaseUrl(),
+    'sameAs' => $socialProfileUrls,
 ];
-
 ?>
 
 <script type="application/ld+json">
-{ "@context" : "https://schema.org",
-  "@type" : "Organization",
-  "name" : "<?= /* @noEscape  */ $this->getStoreName(); ?>",
-  "url" : "<?= $block->escapeUrl($block->getBaseUrl()); ?>",
-  "sameAs" : [
-     <?= /* @noEscape */ '"' . implode('", "', array_filter($socialLoginUrls)) . '"'; ?>
-    ]
-}
-
+<?= /* @noEscape */ json_encode($socialProfileData, $jsonFlags) ?>
 </script>
-

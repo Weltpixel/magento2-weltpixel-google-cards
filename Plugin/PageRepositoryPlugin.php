@@ -4,6 +4,7 @@ namespace WeltPixel\GoogleCards\Plugin;
 
 use Magento\Cms\Api\Data\PageInterface;
 use Magento\Cms\Model\PageRepository;
+use Magento\Framework\Message\ManagerInterface;
 use WeltPixel\GoogleCards\Model\Config\FileUploader\FileProcessor;
 
 /**
@@ -18,13 +19,21 @@ class PageRepositoryPlugin
     protected $fileProcessor;
 
     /**
+     * @var ManagerInterface
+     */
+    protected $messageManager;
+
+    /**
      * PageRepositoryPlugin constructor.
      * @param FileProcessor $fileProcessor
+     * @param ManagerInterface $messageManager
      */
     public function __construct(
-        FileProcessor $fileProcessor
+        FileProcessor $fileProcessor,
+        ManagerInterface $messageManager
     ) {
         $this->fileProcessor = $fileProcessor;
+        $this->messageManager = $messageManager;
     }
 
     /**
@@ -57,7 +66,13 @@ class PageRepositoryPlugin
                     $entityImagePath = $this->fileProcessor->saveToPath($entityImage);
                     $data[$imageField] = $entityImagePath;
                 } catch (\Exception $ex) {
-                    $this->messageManager->addError($ex->getMessage());
+                    /**
+                     * The message manager was used here without ever being injected, so this
+                     * handler called a method on null: any rejected or stale upload became a
+                     * fatal instead of a message. It is reachable without a crafted request,
+                     * because renameFile() throws when the tmp file is gone.
+                     */
+                    $this->messageManager->addErrorMessage($ex->getMessage());
                 }
             }
         } else {

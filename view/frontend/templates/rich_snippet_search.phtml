@@ -1,15 +1,31 @@
+<?php
+/**
+ * Emitted through json_encode rather than assembled by hand. The store name previously went
+ * through escapeQuote, which writes html entities into json where nothing decodes them, so a
+ * name containing an apostrophe reached Google as &#039;.
+ *
+ * The {search_term_string} placeholder is deliberately left literal - json_encode does not
+ * escape braces, so the SearchAction target keeps the form Google expects.
+ */
+$jsonFlags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+    | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT;
+
+$searchData = [
+    '@context' => 'https://schema.org',
+    '@type' => 'WebSite',
+    'url' => $block->getBaseUrl(),
+    'name' => $block->stripTags($block->getStoreName()),
+    'potentialAction' => [
+        [
+            '@type' => 'SearchAction',
+            'target' => $block->getUrl('catalogsearch/result/') . '?q={search_term_string}',
+            'query-input' => 'required name=search_term_string',
+        ],
+    ],
+];
+?>
 <?php if ($this->isSearchEnabled()) : ?>
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "url": "<?= /* @noEscape */ $block->getBaseUrl() ?>",
-      "name": "<?= /* @noEscape */ $block->escapeQuote($block->getStoreName()) ?>",
-      "potentialAction": [{
-        "@type": "SearchAction",
-        "target": "<?= /* @noEscape */ $block->getUrl('catalogsearch/result/') ?>?q={search_term_string}",
-        "query-input": "required name=search_term_string"
-      }]
-    }
+<?= /* @noEscape */ json_encode($searchData, $jsonFlags) ?>
     </script>
 <?php endif; ?>
