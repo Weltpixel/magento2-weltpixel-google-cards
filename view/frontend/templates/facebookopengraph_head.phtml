@@ -1,7 +1,9 @@
 <?php
 /**
  * Every value here lands inside a content="..." attribute, so it is escaped with escapeHtmlAttr,
- * or escapeUrl where the value is a url.
+ * or escapeUrl where the value is a url. escapeHtmlAttr is called with its second argument false,
+ * which escapes & < > " and ' through htmlspecialchars. The default mode writes every character
+ * that is not alphanumeric as a hex reference, so a space became &#x20; in the page source.
  *
  * og:title previously had stripTags as its only filter, which leaves a raw double quote, so a
  * product name containing one escaped the attribute. The app id, the site name and the retailer id
@@ -26,16 +28,16 @@ if ($wpCanonicalUrlEnabled) {
 ?>
 <!--  facebook open graph -->
 <?php if ($fbAppId) : ?>
-    <meta property="fb:app_id" content="<?= $block->escapeHtmlAttr($fbAppId) ?>"/>
+    <meta property="fb:app_id" content="<?= $block->escapeHtmlAttr($fbAppId, false) ?>"/>
 <?php endif; ?>
-<meta property="og:site_name" content="<?= $block->escapeHtmlAttr($block->getSiteName()) ?>"/>
+<meta property="og:site_name" content="<?= $block->escapeHtmlAttr($block->getSiteName(), false) ?>"/>
 <meta property="og:type" content="product"/>
-<meta property="og:title" content="<?= $block->escapeHtmlAttr($block->stripTags($_product->getName())) ?>"/>
+<meta property="og:title" content="<?= $block->escapeHtmlAttr($block->stripTags($_product->getName()), false) ?>"/>
 <meta property="og:image" content="<?= $block->escapeUrl($block->getImage($_product, 'weltpixel_googlecards_product_image')->getImageUrl()) ?>"/>
-<meta property="og:description" content="<?= $block->escapeHtmlAttr($block->stripTags($block->getDescription($_product))) ?>"/>
+<meta property="og:description" content="<?= $block->escapeHtmlAttr($block->stripTags($block->getDescription($_product)), false) ?>"/>
 <meta property="og:url" content="<?= $block->escapeUrl($productUrl) ?>"/>
-<meta property="product:price:amount" content="<?= $block->escapeHtmlAttr($this->getPrice()) ?>"/>
-<meta property="product:price:currency" content="<?= $block->escapeHtmlAttr($block->getCurrencyCode()) ?>"/>
-<meta property="product:availability" content="<?= $block->escapeHtmlAttr($stock) ?>"/>
-<meta property="product:retailer_item_id" content="<?= $block->escapeHtmlAttr($block->getRetailerId($_product)) ?>"/>
+<meta property="product:price:amount" content="<?= $block->escapeHtmlAttr($this->getPrice(), false) ?>"/>
+<meta property="product:price:currency" content="<?= $block->escapeHtmlAttr($block->getCurrencyCode(), false) ?>"/>
+<meta property="product:availability" content="<?= $block->escapeHtmlAttr($stock, false) ?>"/>
+<meta property="product:retailer_item_id" content="<?= $block->escapeHtmlAttr($block->getRetailerId($_product), false) ?>"/>
 <!--  facebook open graph -->

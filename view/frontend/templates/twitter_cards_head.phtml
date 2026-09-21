@@ -1,7 +1,9 @@
 <?php
 /**
  * Every value here lands inside a content="..." attribute, so it is escaped with escapeHtmlAttr,
- * or escapeUrl where the value is a url.
+ * or escapeUrl where the value is a url. escapeHtmlAttr is called with its second argument false,
+ * which escapes & < > " and ' through htmlspecialchars. The default mode writes every character
+ * that is not alphanumeric as a hex reference, so a space became &#x20; in the page source.
  *
  * The title and the description previously had stripTags as their only filter. stripTags removes
  * tags but leaves a raw double quote, so a product name containing one escaped the attribute and
@@ -14,15 +16,15 @@ $twitterSite = trim((string)$block->getTwitterSite());
 $twitterCreator = trim((string)$block->getTwitterCreator());
 ?>
 <!--  twitter product cards-->
-<meta name="twitter:card" content="<?= $block->escapeHtmlAttr($block->getTwitterCardType()) ?>" />
+<meta name="twitter:card" content="<?= $block->escapeHtmlAttr($block->getTwitterCardType(), false) ?>" />
 <meta name="twitter:domain" content="<?= $block->escapeUrl($block->getBaseUrl()) ?>" />
-<meta name="twitter:site" content="<?= $block->escapeHtmlAttr(strlen($twitterSite) ? '@' . $twitterSite : '') ?>" />
-<meta name="twitter:creator" content="<?= $block->escapeHtmlAttr(strlen($twitterCreator) ? '@' . $twitterCreator : '') ?>" />
-<meta name="twitter:title" content="<?= $block->escapeHtmlAttr($block->stripTags($_product->getName())) ?>" />
-<meta name="twitter:description" content="<?= $block->escapeHtmlAttr($block->stripTags($block->getDescription($_product))) ?>" />
+<meta name="twitter:site" content="<?= $block->escapeHtmlAttr(strlen($twitterSite) ? '@' . $twitterSite : '', false) ?>" />
+<meta name="twitter:creator" content="<?= $block->escapeHtmlAttr(strlen($twitterCreator) ? '@' . $twitterCreator : '', false) ?>" />
+<meta name="twitter:title" content="<?= $block->escapeHtmlAttr($block->stripTags($_product->getName()), false) ?>" />
+<meta name="twitter:description" content="<?= $block->escapeHtmlAttr($block->stripTags($block->getDescription($_product)), false) ?>" />
 <meta name="twitter:image" content="<?= $block->escapeUrl($block->getImage($_product, 'weltpixel_googlecards_product_image')->getImageUrl()) ?>" />
-<meta name="twitter:data1" content="<?= $block->escapeHtmlAttr($block->getCurrencyCode() . $this->getPrice()) ?>" />
+<meta name="twitter:data1" content="<?= $block->escapeHtmlAttr($block->getCurrencyCode() . $this->getPrice(), false) ?>" />
 <meta name="twitter:label1" content="PRICE" />
-<meta name="twitter:data2" content="<?= $block->escapeHtmlAttr($block->getShippingCountry()) ?>" />
+<meta name="twitter:data2" content="<?= $block->escapeHtmlAttr($block->getShippingCountry(), false) ?>" />
 <meta name="twitter:label2" content="LOCATION" />
 <!--  twitter product cards-->

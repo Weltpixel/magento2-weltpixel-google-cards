@@ -3,7 +3,9 @@
  * @var $block \WeltPixel\GoogleCards\Block\FacebookOpenGraph
  *
  * Every value here lands inside a content="..." attribute, so it is escaped with escapeHtmlAttr,
- * or escapeUrl where the value is a url.
+ * or escapeUrl where the value is a url. escapeHtmlAttr is called with its second argument false,
+ * which escapes & < > " and ' through htmlspecialchars. The default mode writes every character
+ * that is not alphanumeric as a hex reference, so a space became &#x20; in the page source.
  *
  * og:image_alt previously had stripTags as its only filter, which leaves a raw double quote, so a
  * page's Open Graph Image ALT field - editable by anyone who can edit a cms page - escaped the
@@ -20,23 +22,23 @@ $pageOgImageAlt = $page->getData('og_meta_image_alt');
 ?>
 <!--  facebook open graph -->
 <?php if ($fbAppId) : ?>
-    <meta property="fb:app_id" content="<?= $block->escapeHtmlAttr($fbAppId) ?>"/>
+    <meta property="fb:app_id" content="<?= $block->escapeHtmlAttr($fbAppId, false) ?>"/>
 <?php endif; ?>
 <?php if ($siteName) : ?>
-<meta property="og:site_name" content="<?= $block->escapeHtmlAttr($siteName) ?>"/>
+<meta property="og:site_name" content="<?= $block->escapeHtmlAttr($siteName, false) ?>"/>
 <?php endif; ?>
 <meta property="og:url" content="<?= $block->escapeUrl($block->getCurrentUrl()) ?>" />
 <meta property="og:type" content="website"/>
 <?php if ($pageMetaTitle) : ?>
-<meta property="og:title" content="<?= $block->escapeHtmlAttr($block->stripTags($pageMetaTitle)) ?>" />
+<meta property="og:title" content="<?= $block->escapeHtmlAttr($block->stripTags($pageMetaTitle), false) ?>" />
 <?php endif; ?>
 <?php if ($pageOgImage) : ?>
 <meta property="og:image" content="<?= $block->escapeUrl($pageOgImage) ?>"/>
 <?php endif; ?>
 <?php if ($pageOgImageAlt) : ?>
-<meta property="og:image_alt" content="<?= $block->escapeHtmlAttr($block->stripTags($pageOgImageAlt)) ?>" />
+<meta property="og:image_alt" content="<?= $block->escapeHtmlAttr($block->stripTags($pageOgImageAlt), false) ?>" />
 <?php endif; ?>
 <?php if ($pageMetaDescription) : ?>
-<meta property="og:description" content="<?= $block->escapeHtmlAttr($block->stripTags($pageMetaDescription)) ?>"/>
+<meta property="og:description" content="<?= $block->escapeHtmlAttr($block->stripTags($pageMetaDescription), false) ?>"/>
 <?php endif; ?>
 <!--  facebook open graph -->
